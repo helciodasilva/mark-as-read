@@ -137,6 +137,22 @@ chrome.runtime.onMessage.addListener(function (msg) {
     }
 });
 
+markUrl = function(info){
+	var url = info.linkUrl;
+	if (!isVisited(url)) {
+		addUrl(url);
+	} else {
+		removeUrl(url);
+	}
+	updateRemoteDictionary();
+};
+
+chrome.contextMenus.create({
+	title: "Mark As Read",
+	contexts:["link"],
+	onclick: markUrl
+});
+
 function changeLinkColor(tab) {
 	chrome.storage.local.get(tcDefaults, function(storage) {
 		if(storage.changeLinkColor) {
