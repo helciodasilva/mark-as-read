@@ -10,6 +10,9 @@ if(typeof visited !== 'undefined') {
 
 function isVisited(url) {
 	if(url) {
+		if(isYoutubeUrl(url)) {
+			url = formatYoutubeUrl(url);
+		}
 		var key = getKey(url);
 		if(visited[key]) {
 			var path = url.replace(key, '');
@@ -21,4 +24,21 @@ function isVisited(url) {
 
 function getKey(url) {
 	return new URL(url).origin;
+}
+
+function isYoutubeUrl(url){
+	return url.includes('youtube') && url.includes('?');
+}
+
+
+function formatYoutubeUrl(url) {
+	var keep = ["v"];
+	var urlParts = url.split('?');
+	var params = new URLSearchParams(urlParts[1]);	
+	for (let k of params.keys()) {
+		if(!keep.includes(k)) {
+			params.delete(k);
+		}
+	}	
+	return urlParts[0] + '?' + params.toString();
 }

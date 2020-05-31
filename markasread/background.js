@@ -173,6 +173,9 @@ function containsSite(sites, url) {
 }
 
 function removeUrl(url) {
+	if(isYoutubeUrl(url)) {
+		url = formatYoutubeUrl(url);
+	}
 	var key = getKey(url);
 	var path = url.replace(key, '');
 	const index = visited[key].indexOf(path);
@@ -186,6 +189,9 @@ function removeUrl(url) {
 
 function isVisited(url) {
 	if(url) {
+		if(isYoutubeUrl(url)) {
+			url = formatYoutubeUrl(url);
+		}
 		var key = getKey(url);
 		if(visited[key]) {
 			var path = url.replace(key, '');
@@ -195,7 +201,14 @@ function isVisited(url) {
 	return false;
 }
 
+function isYoutubeUrl(url){
+	return url.includes('youtube') && url.includes('?');
+}
+
 function addUrl(url){
+	if(isYoutubeUrl(url)) {
+		url = formatYoutubeUrl(url);
+	}
 	var key = getKey(url);
 	var path = url.replace(key, '');
 	if(visited[key]) {
@@ -207,4 +220,16 @@ function addUrl(url){
 
 function getKey(url) {
 	return new URL(url).origin;
+}
+
+function formatYoutubeUrl(url) {
+	var keep = ["v"];
+	var urlParts = url.split('?');
+	var params = new URLSearchParams(urlParts[1]);	
+	for (let k of params.keys()) {
+		if(!keep.includes(k)) {
+			params.delete(k);
+		}
+	}	
+	return urlParts[0] + '?' + params.toString();
 }
