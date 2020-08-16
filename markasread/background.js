@@ -73,14 +73,7 @@ chrome.tabs.onUpdated.addListener(function callback(activeInfo, info) {
 });
 
 function fetchRemoteDictionary() {
-	/*
-	const url = "https://i4rn4a.by.files.1drv.com/y4m0C1VwKfxAAryZGSmLWprYGkvS3-CG-OUY1N3HUtB35V0TmydYWOXxy9zlrUX-fIq2X1X6uzrDVhL16YdZ32jDF3pIFQNizjjjgx0Cz6Izd_hOm7qYCnTrbA8_qB-9EKkicO6VAaWDZRBk7bVMZK4folXocIvhZbIa-kn2bD3e0puBS26jIIgNRn-U7KYtd8YY0SwAkdy6_90yHlmDdeREg";
-
-	fetch(url)
-		.then((response) => response.json())
-		.then((json) => visited = json);
-*/
-		chrome.storage.local.get("visited", function (obj) {
+		chrome.storage.sync.get("visited", function (obj) {
 			if (obj["visited"] == undefined) {
 				visited = {version: 2};
 			} else {
@@ -93,10 +86,20 @@ function fetchRemoteDictionary() {
 				}
 			}
 		});
+		loadFromJson();
+}
+
+function loadFromJson(){
+	const url = "https://i4rn4a.by.files.1drv.com/y4m0C1VwKfxAAryZGSmLWprYGkvS3-CG-OUY1N3HUtB35V0TmydYWOXxy9zlrUX-fIq2X1X6uzrDVhL16YdZ32jDF3pIFQNizjjjgx0Cz6Izd_hOm7qYCnTrbA8_qB-9EKkicO6VAaWDZRBk7bVMZK4folXocIvhZbIa-kn2bD3e0puBS26jIIgNRn-U7KYtd8YY0SwAkdy6_90yHlmDdeREg";
+
+	fetch(url)
+		.then((response) => response.json())
+		.then((json) => visitedJson = json);
+	
 }
 
 function updateRemoteDictionary() {	
-	chrome.storage.local.set({"visited": visited}, function() {
+	chrome.storage.sync.set({"visited": visited}, function() {
 		if (chrome.runtime.error) {
 			console.log("Runtime error.");
 		}
@@ -161,7 +164,7 @@ chrome.contextMenus.create({
 });
 
 function changeLinkColor(tab) {
-	chrome.storage.local.get(tcDefaults, function(storage) {
+	chrome.storage.sync.get(tcDefaults, function(storage) {
 		if(storage.changeLinkColor) {
 			if(containsSite(storage.sites, tab.url)) {
 				var code = `var linkColor="${storage.linkColor}"; var visited = ${JSON.stringify(visited)}`;
@@ -195,14 +198,18 @@ function removeUrl(url) {
 }
 
 function isVisited(url) {
+	return isVisited2(url, visited) || isVisited2(url, visitedJson);
+}
+
+function isVisited2(url, data) {
 	if(url) {
 		if(isYoutubeUrl(url)) {
 			url = formatYoutubeUrl(url);
 		}
 		var key = getKey(url);
-		if(visited[key]) {
+		if(data[key]) {
 			var path = url.replace(key, '');
-			return visited[key].includes(path);
+			return data[key].includes(path);
 		}		
 	}
 	return false;
