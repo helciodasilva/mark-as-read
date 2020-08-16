@@ -40,5 +40,8 @@ function formatYoutubeUrl(url) {
 			params.delete(k);
 		}
 	}	
+	params.delete('index');
+	params.delete('loop');
+	params.delete('fbclid');
 	return urlParts[0] + '?' + params.toString();
 }
