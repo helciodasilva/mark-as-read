@@ -72,20 +72,27 @@ chrome.tabs.onUpdated.addListener(function callback(activeInfo, info) {
 	});
 });
 
-function fetchRemoteDictionary() {	
-	chrome.storage.local.get("visited", function (obj) {
-		if (obj["visited"] == undefined) {
-			visited = {version: 2};
-		} else {
-			var objVisited = obj["visited"];
-			if(objVisited.version == 2) {
-				visited = objVisited;
-			} else {
+function fetchRemoteDictionary() {
+	/*
+	const url = "https://i4rn4a.by.files.1drv.com/y4m0C1VwKfxAAryZGSmLWprYGkvS3-CG-OUY1N3HUtB35V0TmydYWOXxy9zlrUX-fIq2X1X6uzrDVhL16YdZ32jDF3pIFQNizjjjgx0Cz6Izd_hOm7qYCnTrbA8_qB-9EKkicO6VAaWDZRBk7bVMZK4folXocIvhZbIa-kn2bD3e0puBS26jIIgNRn-U7KYtd8YY0SwAkdy6_90yHlmDdeREg";
+
+	fetch(url)
+		.then((response) => response.json())
+		.then((json) => visited = json);
+*/
+		chrome.storage.local.get("visited", function (obj) {
+			if (obj["visited"] == undefined) {
 				visited = {version: 2};
-				Object.keys(objVisited).forEach(url => addUrl(url));
+			} else {
+				var objVisited = obj["visited"];
+				if(objVisited.version == 2) {
+					visited = objVisited;
+				} else {
+					visited = {version: 2};
+					Object.keys(objVisited).forEach(url => addUrl(url));
+				}
 			}
-		}
-	});
+		});
 }
 
 function updateRemoteDictionary() {	
@@ -231,5 +238,8 @@ function formatYoutubeUrl(url) {
 			params.delete(k);
 		}
 	}	
+	params.delete('index');
+	params.delete('loop');
+	params.delete('fbclid');
 	return urlParts[0] + '?' + params.toString();
 }
