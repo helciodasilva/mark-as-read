@@ -1,5 +1,4 @@
 var tcDefaults = {
-	changeLinkColor: false,
 	linkColor: 'blue',
 	sites: `https://github.com`	
 };
@@ -65,9 +64,6 @@ chrome.tabs.onUpdated.addListener(function callback(activeInfo, info) {
 			markAsNotVisited();
 		} else { 
 			markAsVisited();
-		}
-		if (info.status === 'complete') {
-			changeLinkColor(tab);
 		}
 	});
 });
@@ -147,40 +143,21 @@ chrome.runtime.onMessage.addListener(function (msg) {
     }
 });
 
-markUrl = function(info){
-	var url = info.linkUrl;
-	if (!isVisited(url)) {
-		addUrl(url);
-	} else {
-		removeUrl(url);
-	}
-	updateRemoteDictionary();
+checkLinks = function(info, tab){
+	loadFromJson();
+	var code = `var linkColor="red"; var visited = ${JSON.stringify(visitedJson)}`;
+	chrome.tabs.executeScript(tab.id, {
+		code: code
+	}, function() {
+		chrome.tabs.executeScript(tab.id, {file: 'changeLinkColor.js'});
+	});	
 };
 
 chrome.contextMenus.create({
-	title: "Mark As Read",
-	contexts:["link"],
-	onclick: markUrl
+	title: "Check",
+	contexts:["all"],
+	onclick: checkLinks
 });
-
-function changeLinkColor(tab) {
-	chrome.storage.sync.get(tcDefaults, function(storage) {
-		if(storage.changeLinkColor) {
-			if(containsSite(storage.sites, tab.url)) {
-				var code = `var linkColor="${storage.linkColor}"; var visited = ${JSON.stringify(visited)}`;
-				chrome.tabs.executeScript(tab.id, {
-					code: code
-				}, function() {
-					chrome.tabs.executeScript(tab.id, {file: 'changeLinkColor.js'});
-				});	
-			}
-		}
-	});
-}
-
-function containsSite(sites, url) {
-	return sites.split("\n").filter(site => url.includes(site)).length;
-}
 
 function removeUrl(url) {
 	if(isYoutubeUrl(url)) {

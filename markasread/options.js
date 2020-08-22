@@ -9,12 +9,12 @@ function saveOptions() {
 	var linkColor = document.getElementById("linkColor").value;
 	var sites = document.getElementById("sites").value;
 
-	chrome.storage.local.remove([
+	chrome.storage.sync.remove([
 		"changeLinkColor",
 		"linkColor",
 		"sites"
 	]);
-	chrome.storage.local.set(
+	chrome.storage.sync.set(
 		{
 			changeLinkColor: changeLinkColor || tcDefaults.changeLinkColor,
 			linkColor: linkColor || tcDefaults.linkColor,
@@ -32,7 +32,7 @@ function saveOptions() {
 }
 
 function restoreDefaults() {
-	chrome.storage.local.set(tcDefaults, function() {
+	chrome.storage.sync.set(tcDefaults, function() {
 		restoreOptions();
 		// Update status to let user know options were saved.
 		var status = document.getElementById("status");
@@ -44,7 +44,7 @@ function restoreDefaults() {
 }
 
 function restoreOptions() {
-	chrome.storage.local.get(tcDefaults, function(storage) {
+	chrome.storage.sync.get(tcDefaults, function(storage) {
 		document.getElementById("changeLinkColor").checked = storage.changeLinkColor != tcDefaults.changeLinkColor ? storage.changeLinkColor : false;
 		document.getElementById("linkColor").value = storage.linkColor != tcDefaults.linkColor ? storage.linkColor : "";
 		document.getElementById("sites").value = storage.sites != tcDefaults.sites ? storage.sites : "";
@@ -52,13 +52,21 @@ function restoreOptions() {
 }
 
 function download() {
-	chrome.storage.local.get("visited", function (obj) {
+	chrome.storage.sync.get("visited", function (obj) {
 		var result = JSON.stringify(obj["visited"]);
 		var url = 'data:application/json;base64,' + btoa(result);
 		chrome.downloads.download({
 			url: url,
 			filename: 'data.json'
 		});
+	});
+}
+
+function clean() {
+	chrome.storage.sync.set({"visited": {}}, function() {
+		if (chrome.runtime.error) {
+			console.log("Runtime error.");
+		}
 	});
 }
 
@@ -83,5 +91,6 @@ document.addEventListener('DOMContentLoaded', function() {
 	document.getElementById("import").addEventListener('click', openDialog);
 	document.getElementById("save").addEventListener("click", saveOptions);
 	document.getElementById("restore").addEventListener("click", restoreDefaults);
+	document.getElementById("clean").addEventListener("click", clean);
 	restoreOptions();
 }, false);
